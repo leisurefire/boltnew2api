@@ -9,6 +9,7 @@
 cat > .env << 'EOF'
 PORT=8080
 BOLT_COOKIES=__session=your_session_token_here; activeOrganizationId=your_org_id; remember_user_token=your_token
+API_KEY=sk-your-secret-key-12345
 BOLT_PROJECT_ID=49956303
 NODE_ENV=production
 EOF
@@ -28,8 +29,9 @@ npm start
 ```bash
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-your-secret-key-12345" \
   -d '{
-    "model": "claude-3.5-sonnet",
+    "model": "claude-sonnet",
     "messages": [
       {
         "role": "user",
@@ -45,8 +47,9 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 ```bash
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-your-secret-key-12345" \
   -d '{
-    "model": "claude-3.5-sonnet",
+    "model": "claude-sonnet",
     "messages": [
       {
         "role": "user",
@@ -104,8 +107,8 @@ https://your-service.zeabur.app/v1/chat/completions
    名称: bolt2api
    类型: OpenAI
    Base URL: https://your-service.zeabur.app/v1
-   密钥: (留空或随意填写，不会被使用)
-   模型: claude-3.5-sonnet
+   密钥: sk-your-secret-key-12345 (你设置的 API_KEY)
+   模型: claude-sonnet
    ```
 4. 保存并启用渠道
 
@@ -133,15 +136,19 @@ import requests
 
 url = "http://localhost:8080/v1/chat/completions"
 
+headers = {
+    "Authorization": "Bearer sk-your-secret-key-12345"
+}
+
 payload = {
-    "model": "claude-3.5-sonnet",
+    "model": "claude-sonnet",
     "messages": [
         {"role": "user", "content": "用Python写一个快速排序"}
     ],
     "stream": False
 }
 
-response = requests.post(url, json=payload)
+response = requests.post(url, json=payload, headers=headers)
 result = response.json()
 
 print(result["choices"][0]["message"]["content"])
@@ -156,10 +163,11 @@ async function chat(message) {
   const response = await fetch('http://localhost:8080/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer sk-your-secret-key-12345'
     },
     body: JSON.stringify({
-      model: 'claude-3.5-sonnet',
+      model: 'claude-sonnet',
       messages: [
         { role: 'user', content: message }
       ],
@@ -181,11 +189,11 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8080/v1",
-    api_key="dummy"  # 可以是任意值
+    api_key="sk-your-secret-key-12345"  # 使用你设置的 API_KEY
 )
 
 response = client.chat.completions.create(
-    model="claude-3.5-sonnet",
+    model="claude-sonnet",
     messages=[
         {"role": "user", "content": "介绍一下 Kubernetes"}
     ]
@@ -221,7 +229,10 @@ A: 通常 24-48 小时，需要定期更新。
 A: 当前版本不支持，只能使用一个账号的 cookies。
 
 ### Q: 支持哪些模型？
-A: 目前返回的模型是 `claude-3.5-sonnet`，实际调用 bolt.new 的默认模型。
+A: 支持 `claude-sonnet`（默认）和 `claude-3.5-sonnet`，实际都调用 bolt.new 的默认模型。
+
+### Q: 必须设置 API_KEY 吗？
+A: 不是必须的，但强烈推荐。如果不设置，任何人都可以访问你的服务。
 
 ### Q: 流式响应工作正常吗？
 A: 支持流式响应，但 bolt.new 原生响应可能不是标准流式格式，服务会进行转换。

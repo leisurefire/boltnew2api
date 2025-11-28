@@ -1,236 +1,211 @@
-# Bolt2API - bolt.new Chat API Wrapper
+# bolt2api - OpenAI Compatible API for bolt.new
 
-A production-ready API wrapper that intercepts and proxies bolt.new's chat functionality using session cookies for authentication.
+将 bolt.new 转换为标准的 OpenAI 兼容 API，可用于 OneAPI、LobeChat 等各类 AI 应用。
 
-## ✅ Status: Fully Working
+[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com)
 
-- **Service URL**: `https://bolt2api-rf6frxmcca-ew.a.run.app`
-- **Local Server**: `http://localhost:8080`
-- **Version**: 2.0.0
-- **Last Updated**: 2025-06-27
+## ✨ 特性
 
-## 🚀 Features
+- 🔌 **OpenAI 兼容** - 标准的 `/v1/chat/completions` 接口
+- 🔐 **API Key 认证** - 支持 Bearer Token 身份验证
+- 🚀 **一键部署** - 支持 Zeabur、Railway、Render 等平台
+- 🔄 **流式响应** - 支持 SSE 流式输出
+- 👥 **多账号支持** - 同时支持个人和团队账号
+- 📝 **详细日志** - 便于调试和监控
+- 🛡️ **安全可靠** - Cookies 存储在环境变量中
 
-- 🔐 **Cookie Authentication** - Works with bolt.new session cookies
-- 💬 **Chat API Proxy** - Direct access to bolt.new's AI chat
-- 🔄 **Streaming Support** - Handles bolt.new's streaming responses
-- 🏢 **Team Account Support** - Works with both individual and team accounts
-- 📊 **Request Logging** - Complete request/response monitoring
-- ⚡ **Production Ready** - Deployed on Google Cloud Run
+## 🚀 快速开始
 
-## 🎯 Quick Start
+### 方法 1: 一键部署到 Zeabur（推荐）
 
-### 1. Get Your Cookies
-1. Install the Tampermonkey browser extension
-2. Install the cookie extractor script (`bolt-cookie-extractor.user.js`)
-3. Visit [bolt.new](https://bolt.new) and login
-4. Click the "🍪 Extract Cookies" button
-5. Copy your session cookies
+1. 点击上方的 "Deploy on Zeabur" 按钮
+2. 设置环境变量：
+   ```
+   BOLT_COOKIES=你的bolt.new cookies
+   API_KEY=sk-你的密钥
+   ```
+3. 部署完成，开始使用！
 
-### 2. Make Your First Request
-```javascript
-const response = await fetch('https://bolt2api-rf6frxmcca-ew.a.run.app/api/chat', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Cookie': 'your_bolt_cookies_here'
-  },
-  body: JSON.stringify({
-    messages: [{
-      id: 'msg-' + Date.now(),
-      role: 'user',
-      content: 'Create a React todo app'
-    }],
-    projectId: '49956303',
-    promptMode: 'discussion'
-  })
-});
+详细步骤：[快速开始指南](QUICK_START.md)
 
-const data = await response.json();
-console.log(data.data.content); // AI response
+### 方法 2: 本地运行
+
+```bash
+# 克隆仓库
+git clone https://github.com/your-username/bolt2api.git
+cd bolt2api
+
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件
+
+# 安装依赖
+npm install
+
+# 启动服务
+npm start
 ```
 
-### 3. Test the Service
-```bash
-# Health check
-curl https://bolt2api-rf6frxmcca-ew.a.run.app/health
+## 📖 文档
 
-# Chat test
-curl -X POST https://bolt2api-rf6frxmcca-ew.a.run.app/api/chat \
+- 📘 [快速开始](QUICK_START.md) - 5 分钟快速部署指南
+- 📗 [完整文档](README-V1.md) - 详细的功能说明
+- 📙 [部署指南](DEPLOYMENT.md) - Zeabur 部署详细步骤
+- 📕 [使用示例](USAGE_EXAMPLE.md) - 各种语言的调用示例
+- 📓 [更新日志](CHANGELOG.md) - 版本更新记录
+
+## 🔧 环境变量
+
+| 变量 | 必需 | 说明 |
+|------|------|------|
+| `BOLT_COOKIES` | ✅ | bolt.new 的 session cookies |
+| `API_KEY` | 推荐 | API 密钥，用于认证 |
+| `PORT` | ❌ | 服务端口（默认 8080） |
+| `BOLT_PROJECT_ID` | ❌ | 默认项目 ID |
+
+## 📡 API 端点
+
+### 主要端点
+
+```
+POST /v1/chat/completions  - OpenAI 兼容的聊天接口
+GET  /v1/models            - 可用模型列表
+GET  /v1                   - API 信息
+GET  /health               - 健康检查
+```
+
+### 使用示例
+
+```bash
+curl -X POST https://your-domain.zeabur.app/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Cookie: YOUR_COOKIES_HERE" \
+  -H "Authorization: Bearer your-api-key" \
   -d '{
-    "messages": [{"id": "test", "role": "user", "content": "Hello"}],
-    "projectId": "49956303",
-    "promptMode": "discussion"
+    "model": "claude-sonnet",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
   }'
 ```
 
-## 📋 API Endpoints
+## 🔗 集成示例
 
-### POST `/api/chat` - Send Chat Messages
-Send messages to bolt.new's AI and receive responses.
+### OneAPI
 
-**Request:**
+```
+类型: OpenAI
+Base URL: https://your-domain.zeabur.app/v1
+密钥: your-api-key
+模型: claude-sonnet
+```
+
+### LobeChat
+
 ```javascript
 {
-  "messages": [
-    {"id": "msg-1", "role": "user", "content": "Your message"}
-  ],
-  "projectId": "49956303",
-  "promptMode": "discussion"
+  "baseURL": "https://your-domain.zeabur.app/v1",
+  "apiKey": "your-api-key",
+  "model": "claude-sonnet"
 }
 ```
 
-**Response:**
-```javascript
-{
-  "success": true,
-  "data": {
-    "type": "stream",
-    "content": "0:\"AI response content...\""
-  },
-  "timestamp": "2025-06-27T08:12:30.840Z"
-}
+### Python (OpenAI SDK)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://your-domain.zeabur.app/v1",
+    api_key="your-api-key"
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
 ```
 
-### GET `/health` - Service Status
-Check if the API service is running.
+## 🛡️ 安全建议
 
-**Response:**
-```javascript
-{
-  "success": true,
-  "message": "corrected bolt2api is running",
-  "timestamp": "2025-06-27T08:12:30.840Z",
-  "version": "2.0.0"
-}
-```
+1. ✅ 务必设置 `API_KEY` 保护你的服务
+2. ✅ 定期更换 bolt.new cookies
+3. ✅ 不要将 API Key 提交到代码仓库
+4. ✅ 监控 API 使用情况
+5. ✅ 考虑使用 IP 白名单
 
-## 🍪 Authentication
+## 🤝 支持的模型
 
-The API uses bolt.new session cookies for authentication. Two account types are supported:
+- `claude-sonnet` (默认)
+- `claude-3.5-sonnet`
 
-### Individual Account Cookies
+实际调用 bolt.new 的默认 AI 模型。
+
+## 📝 获取 Cookies
+
+1. 登录 https://bolt.new
+2. 打开浏览器开发者工具 (F12)
+3. Application → Cookies → https://bolt.new
+4. 复制所需 cookies
+
+**团队账号**：
+- `__session`
+- `activeOrganizationId`
+- `remember_user_token`
+
+**个人账号**：
 - `_stackblitz_session`
 - `sb_session`
 - `sb_user_id`
 
-### Team Account Cookies (Recommended)
-- `__session`
-- `activeOrganizationId`
-- Additional tracking cookies
+格式：`name1=value1; name2=value2; name3=value3`
 
-### Cookie Extraction Methods
+## 🐛 故障排查
 
-#### Method 1: Tampermonkey Script (Recommended)
-1. Install Tampermonkey browser extension
-2. Install the provided script (`bolt-cookie-extractor.user.js`)
-3. Visit bolt.new and login
-4. Click "🍪 Extract Cookies" button
-5. Copy the extracted cookies
+### 认证错误
+- 检查 cookies 是否过期
+- 重新登录 bolt.new 获取新 cookies
 
-#### Method 2: Browser DevTools
-1. Open bolt.new and login
-2. Open DevTools (F12) → Application → Cookies
-3. Copy all cookie values for bolt.new domain
+### API Key 错误
+- 确认请求头包含正确的 Authorization
+- 验证环境变量 `API_KEY` 已设置
 
-### Using Cookies
-Include cookies in the `Cookie` header:
+### 连接超时
+- 检查网络连接
+- 确认 bolt.new 服务正常
+- 查看服务日志获取详细信息
+
+详见：[故障排查指南](USAGE_EXAMPLE.md#故障排查)
+
+## 📊 测试
+
 ```bash
-curl -X POST https://bolt2api-rf6frxmcca-ew.a.run.app/api/chat \
-  -H "Content-Type: application/json" \
-  -H "Cookie: your_extracted_cookies" \
-  -d '{"messages": [{"id": "test", "role": "user", "content": "Hello"}], "projectId": "49956303", "promptMode": "discussion"}'
+# 运行测试脚本
+./test-api.sh https://your-domain.zeabur.app
+
+# 或本地测试
+API_KEY=your-key ./test-api.sh http://localhost:8080
 ```
 
-## ⚠️ Common Issues & Solutions
+## 🌟 特别说明
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| 401 Unauthorized | Expired/invalid cookies | Re-extract cookies from bolt.new |
-| 404 Not Found | Wrong endpoint URL | Use correct service URL |
-| 500 Server Error | Invalid request format | Check request body structure |
-| No response/timeout | bolt.new rate limiting | Wait 10-15 seconds and retry |
+- 本项目仅供学习和个人使用
+- 请遵守 bolt.new 的使用条款
+- 不要滥用服务造成负载
+- Cookies 会过期，需定期更新
 
-### Cookie Expiration
-- Cookies typically expire after 24 hours
-- Re-extract cookies when you get 401 errors
-- The cookie extractor script shows validity status
+## 📄 许可证
 
-## 📁 Project Structure
+MIT License
 
-```
-bolt2api/
-├── corrected-bolt2api.js    # Main working server
-├── bolt-cookie-extractor.user.js  # Tampermonkey script
-├── API_REFERENCE.md         # Complete API documentation
-├── INSTALLATION.md          # Quick setup guide
-├── USAGE_GUIDE.md          # Detailed usage examples
-├── sample-cookies.txt       # Example cookie format
-├── api/                     # Serverless functions (TypeScript)
-├── src/                     # Source code (TypeScript)
-├── tests/                   # Test files
-└── testrun/                 # Test results and utilities
-```
+## 🙏 致谢
 
-## 🚀 Local Development
-
-### Running the Server
-```bash
-# Install dependencies
-npm install
-
-# Start the local server
-node corrected-bolt2api.js
-# Server runs on http://localhost:8080
-```
-
-### Available Scripts
-```bash
-npm run dev          # Start development server (Vercel)
-npm run build        # Build TypeScript
-npm run test         # Run tests
-npm run lint         # Lint code
-npm run type-check   # Type checking
-```
-
-## 📚 Documentation
-
-- **[API_REFERENCE.md](API_REFERENCE.md)** - Complete API documentation
-- **[INSTALLATION.md](INSTALLATION.md)** - Quick setup guide
-- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Detailed usage examples
-- **[SUCCESSFUL_REQUEST_FORMAT.md](SUCCESSFUL_REQUEST_FORMAT.md)** - Working request format
-
-## 🔒 Security & Best Practices
-
-- Keep session cookies private and secure
-- Use HTTPS in production environments
-- Rotate cookies regularly (they expire ~24 hours)
-- Monitor API usage for unauthorized access
-- Never expose cookies in client-side code
-
-## 📊 Performance Notes
-
-- **Response Time**: 4-12 seconds typical
-- **Cookie Expiry**: ~24 hours
-- **Rate Limiting**: Handled by bolt.new
-- **Max Request Size**: 10MB
-- **Timeout**: 30 seconds default
-
-## 🆘 Support
-
-- **Service Status**: Check `/health` endpoint
-- **Cookie Issues**: Use the Tampermonkey extractor script
-- **API Questions**: See `API_REFERENCE.md`
-- **Setup Help**: See `INSTALLATION.md`
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
+感谢 [bolt.new](https://bolt.new) 提供的优秀服务。
 
 ---
 
-**🎉 Ready to use!** Your bolt.new API wrapper is production-ready and fully functional.
+**快速链接**
 
-Built with ❤️ for the bolt.new community
+- 🚀 [5分钟快速部署](QUICK_START.md)
+- 📖 [完整使用文档](README-V1.md)
+- 💬 [提交问题](https://github.com/your-username/bolt2api/issues)
+- ⭐ [Star 本项目](https://github.com/your-username/bolt2api)

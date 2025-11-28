@@ -15,6 +15,7 @@ cp .env.example .env
 ```env
 PORT=8080
 BOLT_COOKIES=__session=your_session_token; activeOrganizationId=your_org_id; remember_user_token=your_token
+API_KEY=your-secret-api-key
 BOLT_PROJECT_ID=49956303
 ```
 
@@ -57,14 +58,17 @@ POST /v1/chat/completions
 ```bash
 curl http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-secret-api-key" \
   -d '{
-    "model": "claude-3.5-sonnet",
+    "model": "claude-sonnet",
     "messages": [
       {"role": "user", "content": "Hello"}
     ],
     "stream": false
   }'
 ```
+
+注意：如果环境变量中设置了 `API_KEY`，则必须在请求头中包含正确的 Authorization。
 
 ### 其他端点
 
@@ -102,8 +106,8 @@ zeabur deploy
 1. 在 OneAPI 添加新渠道
 2. 类型选择：OpenAI
 3. Base URL 填写：`https://your-domain.zeabur.app/v1`
-4. API Key 可以留空（本服务从环境变量读取 cookies）
-5. 模型选择：`claude-3.5-sonnet`
+4. API Key 填写你在环境变量中设置的 `API_KEY`（如果设置了的话）
+5. 模型选择：`claude-sonnet` 或 `claude-3.5-sonnet`
 
 ## 响应格式
 
@@ -140,6 +144,7 @@ zeabur deploy
 | 变量 | 必需 | 说明 | 默认值 |
 |------|------|------|--------|
 | `BOLT_COOKIES` | ✅ | bolt.new session cookies | - |
+| `API_KEY` | ❌ | API 密钥（推荐设置） | - |
 | `PORT` | ❌ | 服务端口 | 8080 |
 | `BOLT_PROJECT_ID` | ❌ | 默认项目ID | 49956303 |
 

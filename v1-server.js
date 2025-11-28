@@ -99,6 +99,12 @@ app.get('/v1/models', (req, res) => {
     object: 'list',
     data: [
       {
+        id: 'claude-sonnet',
+        object: 'model',
+        created: Date.now(),
+        owned_by: 'bolt.new'
+      },
+      {
         id: 'claude-3.5-sonnet',
         object: 'model',
         created: Date.now(),
@@ -110,6 +116,20 @@ app.get('/v1/models', (req, res) => {
 
 app.post('/v1/chat/completions', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    const apiKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const expectedApiKey = process.env.API_KEY;
+
+    if (expectedApiKey && apiKey !== expectedApiKey) {
+      return res.status(401).json({
+        error: {
+          message: 'Invalid API key',
+          type: 'authentication_error',
+          code: 'invalid_api_key'
+        }
+      });
+    }
+
     const cookiesFromEnv = process.env.BOLT_COOKIES;
 
     if (!cookiesFromEnv) {
@@ -123,7 +143,7 @@ app.post('/v1/chat/completions', async (req, res) => {
     }
 
     const session = parseBoltCookies(cookiesFromEnv);
-    const { messages, stream = false, model = 'claude-3.5-sonnet' } = req.body;
+    const { messages, stream = false, model = 'claude-sonnet' } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({
@@ -155,17 +175,35 @@ app.post('/v1/chat/completions', async (req, res) => {
 
     const headers = createBoltHeaders(session, projectId);
 
+    console.log('📤 Sending request to bolt.new:', {
+      projectId,
+      messageCount: messages.length,
+      accountType: session.accountType
+    });
+
     const response = await fetch('https://bolt.new/api/chat', {
       method: 'POST',
       headers,
       body: JSON.stringify(chatRequest)
     });
 
+    console.log('📥 Bolt.new response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`Bolt API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('❌ Bolt API error:', errorText);
+      return res.status(response.status).json({
+        error: {
+          message: `Bolt API error: ${response.statusText}`,
+          type: 'api_error',
+          code: 'bolt_api_error',
+          details: errorText.substring(0, 200)
+        }
+      });
     }
 
     const responseText = await response.text();
+    console.log('✅ Response received, length:', responseText.length);
 
     if (stream) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -224,12 +262,14 @@ app.post('/v1/chat/completions', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Chat completion error:', error);
+    console.error('❌ Chat completion error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       error: {
         message: error.message || 'Internal server error',
         type: 'internal_error',
-        code: 'processing_error'
+        code: 'processing_error',
+        details: error.toString()
       }
     });
   }
