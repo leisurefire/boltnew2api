@@ -1,0 +1,15 @@
+{
+  "name": "bolt2api",
+  "version": "1.0.0",
+  "build": {
+    "command": "npm install",
+    "output": "."
+  },
+  "run": {
+    "command": "npm start"
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "8080"
+  }
+}
